@@ -2,10 +2,13 @@
 #include <fstream>
 #include <functional>
 #include <nlohmann/json.hpp>
+#include <set>
 #include <string>
 #include <unordered_map>
 
 #include "api/memory/Hook.h"
+#include <cstdio>
+
 namespace fs = std::filesystem;
 #if __arm__
 #include <unistd.h>
@@ -115,6 +118,15 @@ public:
      std::initializer_list<const char *>({                                                \
     "? ? ? D1 ? ? ? A9 ? ? ? 91 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 E8 03 03 AA" \
   })
+#define OREUI_registerToggle                                                                                                  \
+     std::initializer_list<const char *>({                                                                               \
+    "? ? ? D1 ? ? ? A9 ? ? ? 91 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? D5 F7 03 00 AA ? ? ? F9 F4 03 03 AA F3 03 00 AA"    \
+  })                                                                                                                     \
+
+  #define OREUI_getBool                                                                                               \
+     std::initializer_list<const char *>({                                                                               \
+    "? ? ? F9 ? ? ? F9 ? ? ? B4 E0 03 08 AA ? ? ? F9 ? ? ? F9 ? ? ? B5 ? ? ? 39"    \
+  })                                                                                                                     \
 
 #elif _WIN32
 #define OREUI_PATTERN                                                                                                    \
@@ -122,7 +134,18 @@ public:
     "40 53 55 56 57 41 54 41 55 41 56 41 57 48 83 EC 78 48 8B 05 ? ? ? ? 48 33 C4 48 89 44 24 ? 49 8B E9 4C 89 44 24"    \
   })                                                                                                                     \
 
-#endif
+#define OREUI_registerToggle                                                                                                  \
+     std::initializer_list<const char *>({                                                                               \
+    "89 54 24 ? 53 55 56 57 41 54 41 56 41 57 48 83 EC 60 48 8B 05 ? ? ? ? 48 33 C4 48 89 44 24 ? 49 8B F1"    \
+  })                                                                                                                     \
+
+  #define OREUI_getBool                                                                                               \
+     std::initializer_list<const char *>({                                                                               \
+    "48 8B 41 ? 48 8B 90 ? ? ? ? 48 85 D2 74 ? 48 8B 4A"    \
+  })                                                                                                                     \
+
+
+ #endif
 
 // clang-format on
 
@@ -200,6 +223,7 @@ SKY_AUTO_STATIC_HOOK(Hook2, memory::HookPriority::Normal, OREUI_PATTERN, void,
                      void *a1, void *a2, void *a3, void *a4, void *a5, void *a6,
                      void *a7, void *a8, void *a9, void *a10, OreUi &a11,
                      void *a12) {
+
   dirPath = getConfigDir();
   filePath = dirPath + "config.json";
   if (!std::filesystem::exists(filePath)) {
@@ -226,6 +250,31 @@ SKY_AUTO_STATIC_HOOK(Hook2, memory::HookPriority::Normal, OREUI_PATTERN, void,
     data.second.mUnknown4 = [value]() { return value; };
   }
   origin(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+}
+
+std::map<void *, std::string> mHooks;
+
+SKY_AUTO_STATIC_HOOK(Hook4, memory::HookPriority::Normal, OREUI_registerToggle,
+                     void, void *a1, int toggleId, void **option,
+                     const std::string *tagId, void *a5) {
+
+  mHooks[*option] = *tagId;
+  origin(a1, toggleId, option, tagId, a5);
+}
+
+SKY_AUTO_STATIC_HOOK(Hook5, memory::HookPriority::Normal,
+                     "48 8B 41 ? 48 8B 90 ? ? ? ? 48 85 D2 74 ? 48 8B 4A", bool,
+                     void *a1) {
+  if (mHooks.count(a1)) {
+    if (mHooks[a1] == "mc-new-disconnect-screen" ||
+        mHooks[a1] == "mc-cloud-file-upload" ||
+        mHooks[a1] == "mc-enable-new-player-permissions-screen" ||
+        mHooks[a1] == "mc-enable-new-trial-mode") {
+      *(bool *)((uintptr_t)a1 + 0x10) = false;
+      *(bool *)((uintptr_t)a1 + 0x11) = false;
+    }
+    return origin(a1);
+  }
 }
 
 } // namespace
