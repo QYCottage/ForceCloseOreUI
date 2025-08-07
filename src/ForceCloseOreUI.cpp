@@ -214,27 +214,18 @@ std::string getConfigDir() {
   return primary;
 #endif
 }
-
 nlohmann::json outputJson;
 std::string dirPath = "";
 std::string filePath = dirPath + "config.json";
+bool updated = false;
 
 SKY_AUTO_STATIC_HOOK(Hook2, memory::HookPriority::Normal, OREUI_PATTERN, void,
                      void *a1, void *a2, void *a3, void *a4, void *a5, void *a6,
                      void *a7, void *a8, void *a9, void *a10, OreUi &a11,
                      void *a12) {
-
   dirPath = getConfigDir();
   filePath = dirPath + "config.json";
-  if (!std::filesystem::exists(filePath)) {
-    for (auto &data : a11.mConfigs) {
-      outputJson[data.first] = false;
-    }
-    std::filesystem::create_directories(dirPath);
-    std::ofstream outFile(filePath);
-    outFile << outputJson.dump(4);
-    outFile.close();
-  } else {
+  if (std::filesystem::exists(filePath)) {
     std::ifstream inFile(filePath);
     inFile >> outputJson;
     inFile.close();
@@ -245,36 +236,22 @@ SKY_AUTO_STATIC_HOOK(Hook2, memory::HookPriority::Normal, OREUI_PATTERN, void,
     if (outputJson.contains(data.first) &&
         outputJson[data.first].is_boolean()) {
       value = outputJson[data.first];
+    } else {
+      outputJson[data.first] = false;
+      updated = true;
     }
     data.second.mUnknown3 = [value]() { return value; };
     data.second.mUnknown4 = [value]() { return value; };
   }
-  origin(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-}
 
-std::map<void *, std::string> mHooks;
-
-SKY_AUTO_STATIC_HOOK(Hook4, memory::HookPriority::Normal, OREUI_registerToggle,
-                     void, void *a1, int toggleId, void **option,
-                     const std::string *tagId, void *a5) {
-
-  mHooks[*option] = *tagId;
-  origin(a1, toggleId, option, tagId, a5);
-}
-
-SKY_AUTO_STATIC_HOOK(Hook5, memory::HookPriority::Normal,
-                     "48 8B 41 ? 48 8B 90 ? ? ? ? 48 85 D2 74 ? 48 8B 4A", bool,
-                     void *a1) {
-  if (mHooks.count(a1)) {
-    if (mHooks[a1] == "mc-new-disconnect-screen" ||
-        mHooks[a1] == "mc-cloud-file-upload" ||
-        mHooks[a1] == "mc-enable-new-player-permissions-screen" ||
-        mHooks[a1] == "mc-enable-new-trial-mode") {
-      *(bool *)((uintptr_t)a1 + 0x10) = false;
-      *(bool *)((uintptr_t)a1 + 0x11) = false;
-    }
-    return origin(a1);
+  if (updated || !std::filesystem::exists(filePath)) {
+    std::filesystem::create_directories(dirPath);
+    std::ofstream outFile(filePath);
+    outFile << outputJson.dump(4);
+    outFile.close();
   }
+
+  origin(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 }
 
 } // namespace
