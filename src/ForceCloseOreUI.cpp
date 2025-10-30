@@ -27,7 +27,12 @@ extern "C" int __wrap_getpagesize() { return sysconf(_SC_PAGESIZE); }
 
 #if __arm__ || __aarch64__
 #include "jni.h"
+#include <android/log.h>
+
 JNIEnv *env = nullptr;
+
+#define LOGI(...)                                                              \
+  __android_log_print(ANDROID_LOG_INFO, "LeviLogger", __VA_ARGS__)
 
 jobject getGlobalContext(JNIEnv *env) {
   jclass activity_thread = env->FindClass("android/app/ActivityThread");
@@ -94,9 +99,7 @@ std::string GetModsFilesPath(JNIEnv *env) {
 SKY_AUTO_STATIC_HOOK(
     Hook1, memory::HookPriority::Normal,
     std::initializer_list<const char *>(
-        {"? ? ? D1 ? ? ? A9 ? ? ? 91 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? "
-         "A9 ? ? ? D5 ? ? ? F9 ? ? ? F8 ? ? ? 39 ? ? ? 34 ? ? ? 12",
-         "? ? ? D1 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? "
+        {"? ? ? D1 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? "
          "91 ? ? ? D5 ? ? ? F9 ? ? ? F8 ? ? ? 39 ? ? ? 34 ? ? ? 12"}),
     int, void *_this, JavaVM *vm) {
 
@@ -127,7 +130,6 @@ public:
 #elif __aarch64__
 #define OREUI_PATTERN                                                                     \
      std::initializer_list<const char *>({                                                \
-    "? ? ? D1 ? ? ? A9 ? ? ? 91 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 E8 03 03 AA",\
     "? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 FD 03 00 91 ? ? ? D1 ? ? ? D5 FA 03 00 AA F6 03 07 AA" \
   })                                                                                                                    \
 
@@ -141,7 +143,6 @@ public:
 
 #define OREUI_PATTERN                                                                                                    \
      std::initializer_list<const char *>({                                                                               \
-    "40 53 55 56 57 41 54 41 55 41 56 41 57 48 83 EC 78 48 8B 05 ? ? ? ? 48 33 C4 48 89 44 24 ? 49 8B E9 4C 89 44 24",                                \
     "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC 98 01 00 00 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 4D 8B F1 4C 89 44 24" \
   })                                                                                                                     \
                                                                                                                            \
@@ -216,11 +217,24 @@ std::string dirPath = "";
 std::string filePath = dirPath + "config.json";
 bool updated = false;
 
+void saveJson(const std::string &path, const nlohmann::json &j) {
+  std::filesystem::create_directories(
+      std::filesystem::path(path).parent_path());
+  FILE *f = std::fopen(path.c_str(), "w");
+  if (!f) {
+    throw std::runtime_error(path);
+  }
+  std::string jsonStr = j.dump(4);
+  std::fwrite(jsonStr.data(), 1, jsonStr.size(), f);
+  std::fclose(f);
+}
+
 SKY_AUTO_STATIC_HOOK(Hook2, memory::HookPriority::Normal, OREUI_PATTERN, void,
                      void *a1, void *a2, void *a3, void *a4, void *a5, void *a6,
                      void *a7, void *a8, void *a9, OreUi &a10, void *a11) {
   dirPath = getConfigDir();
   filePath = dirPath + "config.json";
+
   if (std::filesystem::exists(filePath)) {
     std::ifstream inFile(filePath);
     inFile >> outputJson;
@@ -228,11 +242,13 @@ SKY_AUTO_STATIC_HOOK(Hook2, memory::HookPriority::Normal, OREUI_PATTERN, void,
   }
 
   for (auto &data : a10.mConfigs) {
+
     bool value = false;
     if (outputJson.contains(data.first) &&
         outputJson[data.first].is_boolean()) {
       value = outputJson[data.first];
     } else {
+
       outputJson[data.first] = false;
       updated = true;
     }
@@ -241,10 +257,7 @@ SKY_AUTO_STATIC_HOOK(Hook2, memory::HookPriority::Normal, OREUI_PATTERN, void,
   }
 
   if (updated || !std::filesystem::exists(filePath)) {
-    std::filesystem::create_directories(dirPath);
-    std::ofstream outFile(filePath);
-    outFile << outputJson.dump(4);
-    outFile.close();
+    saveJson(filePath, outputJson);
   }
 
   origin(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
