@@ -188,8 +188,6 @@ bool testDirWritable(const std::string &dir) {
 std::string getConfigDir() {
 #if defined(_WIN32)
   std::string primary = "mods/ForceCloseOreUI/";
-  if (testDirWritable(primary))
-    return primary;
   std::string fallback = getUWPModsDir();
   if (testDirWritable(fallback))
     return fallback;
