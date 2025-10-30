@@ -20,6 +20,7 @@ target("ForceCloseOreUI")
         add_packages("detours")
         remove_files("src/api/memory/android/**.cpp","src/api/memory/android/**.h")
         add_cxflags("/utf-8", "/EHa")
+        add_syslinks("Shell32")
     elseif is_plat("android") then
         remove_files("src/api/memory/win/**.cpp","src/api/memory/win/**.h")
         add_cxflags("-O3")
