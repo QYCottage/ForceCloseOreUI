@@ -130,7 +130,8 @@ public:
 #elif __aarch64__
 #define OREUI_PATTERN                                                                     \
      std::initializer_list<const char *>({                                                \
-    "? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 FD 03 00 91 ? ? ? D1 ? ? ? D5 FA 03 00 AA F6 03 07 AA" \
+      "? ? ? D1 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? 91 ? ? ? F9 ? ? ? D5 FB 03 00 AA ? ? ? F9 F5 03 07 AA", \
+      "? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 FD 03 00 91 ? ? ? D1 ? ? ? D5 FA 03 00 AA F6 03 07 AA" \
   })                                                                                                                    \
 
 #elif _WIN32
@@ -143,9 +144,9 @@ public:
 
 #define OREUI_PATTERN                                                                                                    \
      std::initializer_list<const char *>({                                                                               \
+    "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC B8 01 00 00 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 49 8B F1 4C 89 44 24", \
     "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC 98 01 00 00 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 4D 8B F1 4C 89 44 24" \
-  })                                                                                                                     \
-                                                                                                                           \
+  })                                                                                                 \
 
  #endif
 
@@ -193,21 +194,21 @@ std::string getConfigDir() {
     return fallback;
   return primary;
 #else
-  std::string primary = "/storage/emulated/0/games";
-  if (!primary.empty()) {
-    primary += "/ForceCloseOreUI/";
-    if (testDirWritable(primary))
+    std::string primary = "/storage/emulated/0/games";
+    if (!primary.empty()) {
+      primary += "/ForceCloseOreUI/";
+      if (testDirWritable(primary))
+        return primary;
+    }
+    if (!env)
       return primary;
-  }
-  if (!env)
+    std::string base = GetModsFilesPath(env);
+    if (!base.empty()) {
+      base += "/ForceCloseOreUI/";
+      if (testDirWritable(base))
+        return base;
+    }
     return primary;
-  std::string base = GetModsFilesPath(env);
-  if (!base.empty()) {
-    base += "/ForceCloseOreUI/";
-    if (testDirWritable(base))
-      return base;
-  }
-  return primary;
 #endif
 }
 nlohmann::json outputJson;
