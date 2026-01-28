@@ -194,7 +194,7 @@ std::string getConfigDir() {
     return fallback;
   return primary;
 #else
-    std::string primary = "/storage/emulated/0/games";
+    std::string primary = "/sdcard/games";
     if (!primary.empty()) {
       primary += "/ForceCloseOreUI/";
       if (testDirWritable(primary))
