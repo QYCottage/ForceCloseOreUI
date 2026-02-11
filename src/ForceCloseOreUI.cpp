@@ -144,6 +144,7 @@ public:
 
 #define OREUI_PATTERN                                                                                                    \
      std::initializer_list<const char *>({                                                                               \
+    "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC 18 02 00 00 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 49 8B F1 4C 89 44 24", \
     "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC B8 01 00 00 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 49 8B F1 4C 89 44 24", \
     "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC 98 01 00 00 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 4D 8B F1 4C 89 44 24" \
   })                                                                                                 \
@@ -194,21 +195,21 @@ std::string getConfigDir() {
     return fallback;
   return primary;
 #else
-    std::string primary = "/sdcard/games";
-    if (!primary.empty()) {
-      primary += "/ForceCloseOreUI/";
-      if (testDirWritable(primary))
-        return primary;
-    }
-    if (!env)
+  std::string primary = "/sdcard/games";
+  if (!primary.empty()) {
+    primary += "/ForceCloseOreUI/";
+    if (testDirWritable(primary))
       return primary;
-    std::string base = GetModsFilesPath(env);
-    if (!base.empty()) {
-      base += "/ForceCloseOreUI/";
-      if (testDirWritable(base))
-        return base;
-    }
+  }
+  if (!env)
     return primary;
+  std::string base = GetModsFilesPath(env);
+  if (!base.empty()) {
+    base += "/ForceCloseOreUI/";
+    if (testDirWritable(base))
+      return base;
+  }
+  return primary;
 #endif
 }
 nlohmann::json outputJson;
