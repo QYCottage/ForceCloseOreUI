@@ -4,8 +4,7 @@ add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 if is_plat("windows") then
     add_requires("detours v4.0.1-xmake.1")
 elseif is_plat("android") then   
-
-    add_requires("preloader_android 0.1.13")
+    add_requires("preloader_android 0.1.18")
 end
 add_requires("nlohmann_json v3.11.3")
 

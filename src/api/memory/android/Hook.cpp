@@ -29,7 +29,8 @@ bool unhook(FuncPtr target, FuncPtr detour, bool) {
 }
 
 FuncPtr resolveIdentifier(char const *identifier) {
-  return reinterpret_cast<FuncPtr>(pl::signature::resolveSignature(identifier));
+  return reinterpret_cast<FuncPtr>(
+      pl::signature::pl_resolve_signature(identifier, "libminecraftpe.so"));
 }
 
 FuncPtr resolveIdentifier(std::initializer_list<const char *> identifiers) {
