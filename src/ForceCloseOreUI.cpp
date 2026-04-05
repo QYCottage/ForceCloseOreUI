@@ -127,6 +127,7 @@ public:
 #define OREUI_PATTERN 
    {""}
 
+#elif __aarch64__
 #define OREUI_PATTERN                                                                     \
      std::initializer_list<const char *>({                                                \
       "? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 FD 03 00 91 ? ? ? D1 ? ? ? D5 FA 03 00 AA F5 03 07 AA", \
