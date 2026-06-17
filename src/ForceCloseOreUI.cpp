@@ -265,7 +265,7 @@ public:
 #elif __aarch64__
 #define OREUI_PATTERN                                                                     \
      std::initializer_list<const char *>({                                                \
-      "? ? ? D1 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? 91 ? ? ? D5 FB 03 03 2A F8 03 02 2A", \
+      "? ? ? D1 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? A9 ? ? ? 91 ? ? ? D5 F7 03 05 AA FB 03 03 2A", \
   })                                                                                                                    \
 
 #elif _WIN32
@@ -275,10 +275,9 @@ public:
 #include <vector>
 #include <windows.h>
 
-
 #define OREUI_PATTERN                                                                                                    \
      std::initializer_list<const char *>({                                                                               \
-    "55 41 57 41 56 41 55 41 54 56 57 53 48 81 EC D8 01 00 00 48 8D AC 24 ? ? ? ? 48 C7 85 ? ? ? ? ? ? ? ? 45 89 CE", \
+    "55 41 57 41 56 41 55 41 54 56 57 53 48 81 EC E8 01 00 00 48 8D AC 24 ? ? ? ? 48 C7 85 ? ? ? ? ? ? ? ? 44 88 8D 5E", \
   })                                                                                                 \
 
  #endif
