@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -18,7 +19,6 @@
 namespace fs = std::filesystem;
 #if _WIN32
 
-#include <shlobj.h>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -270,7 +270,6 @@ public:
 
 #elif _WIN32
 
-#include <shlobj.h>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -294,14 +293,13 @@ constexpr char kModDirName[] = "ForceCloseOreUI";
 #if defined(_WIN32)
 
 std::string getMinecraftModsPath() {
-  char appDataPath[MAX_PATH];
-  if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, appDataPath))) {
+  const char *appDataPath = std::getenv("APPDATA");
+  if (!appDataPath || !*appDataPath) {
     printf("Failed to get APPDATA path.\n");
     return "";
   }
 
-  std::string path = std::string(appDataPath) + "\\Minecraft Bedrock\\mods";
-  return path;
+  return (fs::path(appDataPath) / "Minecraft Bedrock" / "mods").string();
 }
 
 std::string getUWPModsDir() {
