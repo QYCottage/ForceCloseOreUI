@@ -45,3 +45,21 @@ jobs:
         with:
           name: android
           path: build/android/arm64-v8a/release/*.so
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+
+      - name: Build for iOS (DYLIB)
+        run: |
+          xmake f -p iphoneos -a arm64 -m release -v -y
+          xmake
+
+      - name: Upload DYLIB
+        uses: actions/upload-artifact@v6
+        with:
+          name: ios
+          path: build/iphoneos/arm64/release/*.dylib
